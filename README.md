@@ -23,39 +23,33 @@ Make sure that your Android's screen refresh rate is 60Hz, otherwise you will se
 - Install Library.Watchdog Add-on
 
 ### Installing on [Termux](https://termux.dev/)
-Use [F Droid](https://f-droid.org/) to install Termux or install APK.
+Use [F Droid](https://f-droid.org/) to install Termux or install APK. Then run:
 ```bash
-termux-setup-storage
-pkg update && pkg install termux-api git nodejs sqlite iconv curl python
-git clone https://github.com/argongym/kodi-companion.git
-cd kodi-companion
-npm install --no-bin-links
+curl -sL https://raw.githubusercontent.com/argongym/kodi-companion/master/install.sh | bash
 ```
+This will install all dependencies, clone the repo, set up autostart, and open the configuration wizard.
 
-### Configuring kodi-companion
-Before starting server you need to create config.json file. Script below will help you create it.
-```bash
-npm run config
-```
-Run the command and open http://127.0.0.1:3000/ in your web browser. Then copy config-tmp.json to config.json.
-```bash
-cp config-tmp.json config.json
-```
+#### Autostart
+1. Install the **Termux:Boot** app.
+2. Go to Android settings and turn off battery optimizations for **Termux** and **Termux:Boot**.
+3. Start the Termux:Boot app once by clicking on its launcher icon.
 
-### Autostart server after boot
-1. Install the Termux:Boot app.
-2. Go to Android settings and turn off battery optimizations for Termux and Termux:Boot applications.
-3. Start the Termux:Boot app once by clicking on its launcher icon. This allows the app to be run at boot.
-4. Run the command:
-```bash
-cp -r .termux ~
-```
+The app will auto-start on boot, check for updates, and restart automatically.
 
 ### Starting a Server
 ```bash
-npm run start
+cd ~/kodi && ./start.sh
 ```
-Run the command and open http://127.0.0.1:3000/ in your web browser.
+Open http://127.0.0.1:3000/ in your web browser.
+
+### Reconfiguring
+```bash
+cd ~/kodi && npm run config
+```
+Open http://127.0.0.1:3000/, save settings, then:
+```bash
+cp config-tmp.json config.json
+```
 
 ## Tools
 
