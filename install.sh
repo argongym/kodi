@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/sh
 
 # Kodi Companion — one-command installer for Termux
-# Usage: curl -sL https://raw.githubusercontent.com/argongym/kodi-companion/master/install.sh | bash
+# Usage: curl -sL https://raw.githubusercontent.com/argongym/kodi/master/install.sh | bash
 
 set -e
 
@@ -32,7 +32,7 @@ if [ -d ~/kodi ]; then
     cd ~/kodi
     git pull origin master
 else
-    git clone https://github.com/argongym/kodi-companion.git ~/kodi
+    git clone https://github.com/argongym/kodi.git ~/kodi
     cd ~/kodi
 fi
 
@@ -67,8 +67,8 @@ echo "==================================="
 echo "  Installation complete!"
 echo "==================================="
 echo ""
-echo "  To start:   cd ~/kodi-companion && ./start.sh"
-echo "  To config:   cd ~/kodi-companion && npm run config"
+echo "  To start:   cd ~/kodi && ./start.sh"
+echo "  To config:   cd ~/kodi && npm run config"
 echo ""
 echo "  Make sure to install Termux:Boot app"
 echo "  and disable battery optimization for"

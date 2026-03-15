@@ -1,4 +1,4 @@
-# kodi-companion
+# kodi
 
 ## Installation
 
@@ -25,7 +25,7 @@ Make sure that your Android's screen refresh rate is 60Hz, otherwise you will se
 ### Installing on [Termux](https://termux.dev/)
 Use [F Droid](https://f-droid.org/) to install Termux or install APK. Then run:
 ```bash
-curl -sL https://raw.githubusercontent.com/argongym/kodi-companion/master/install.sh | bash
+curl -sL https://raw.githubusercontent.com/argongym/kodi/master/install.sh | bash
 ```
 This will install all dependencies, clone the repo, set up autostart, and open the configuration wizard.
 
