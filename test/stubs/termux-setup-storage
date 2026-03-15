@@ -1,0 +1,9 @@
+#!/bin/sh
+# Termux termux-setup-storage stub
+echo "  [stub] termux-setup-storage: creating ~/storage"
+mkdir -p ~/storage/shared
+mkdir -p ~/storage/dcim
+mkdir -p ~/storage/downloads
+mkdir -p ~/storage/movies
+mkdir -p ~/storage/music
+mkdir -p ~/storage/pictures

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Termux termux-wake-lock stub
+echo "  [stub] termux-wake-lock: no-op"

@@ -1,0 +1,29 @@
+#!/bin/sh
+# Termux pkg stub — translates pkg commands to apt-get
+
+case "$1" in
+    update)
+        shift
+        apt-get update "$@"
+        ;;
+    install)
+        shift
+        # Filter out termux-specific packages that don't exist in apt
+        PACKAGES=""
+        for pkg in "$@"; do
+            case "$pkg" in
+                -y) PACKAGES="$PACKAGES $pkg" ;;
+                termux-api) echo "  [stub] Skipping termux-api (not available in apt)" ;;
+                iconv) PACKAGES="$PACKAGES libc-bin" ;;
+                nodejs) ;; # already installed in base image
+                *) PACKAGES="$PACKAGES $pkg" ;;
+            esac
+        done
+        if [ -n "$PACKAGES" ]; then
+            apt-get install $PACKAGES
+        fi
+        ;;
+    *)
+        echo "[stub] pkg: unknown command '$1'"
+        ;;
+esac
