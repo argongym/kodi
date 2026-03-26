@@ -69,16 +69,28 @@ async function add(torrentFile, tid, filename){
 
 async function remove(tid, filename){
 	return new Promise(function(resolve, reject){
+		if(!torrents[tid]) return resolve({ status:"not found" });
 		client.remove(torrents[tid], function(){
 			[
 				config.torrents_tmp + '/' + torrents[tid].name + '/',
 				config.torrents_tmp + '/' + torrents[tid].name,
 				config.torrents_tmp + '/' + tid + '.torrent',
-				config.torrents_tmp + '/' + filename + '.' + tid + '.torrent'
+				filename ? config.torrents_tmp + '/' + filename + '.' + tid + '.torrent' : null
 			].forEach(function(file){
+				if(!file) return;
 				if((config.torrents_tmp == config.torrents_dest) && !file.match('.torrent')) return;
 				if(fs.existsSync(file)) fs.rmSync(file, {recursive:true, force:true});
-			})
+			});
+			
+			// Robustly remove any zombie .torrent file for this tid
+			if (fs.existsSync(config.torrents_tmp)) {
+				fs.readdirSync(config.torrents_tmp).forEach(file => {
+					if (file.endsWith(`.${tid}.torrent`) || file === `${tid}.torrent`) {
+						fs.rmSync(path.join(config.torrents_tmp, file), {force: true});
+					}
+				});
+			}
+
 			torrents[tid].destroy();
 			delete torrents[tid];
 			resolve({ status:"removed" });
