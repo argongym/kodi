@@ -44,9 +44,9 @@ self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(cacheNames) {
       return Promise.all(
-        cacheNames.map(function(cacheName) {
-          if (!filesToCache.includes(cacheName)) {
-            return caches.delete(cacheName);
+        cacheNames.map(function(cName) {
+          if (cName !== cacheName) {
+            return caches.delete(cName);
           }
         })
       );

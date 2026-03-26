@@ -45,4 +45,5 @@ function loadConfig(){
 	return config;
 }
 
+config.video_extensions = /\.(avi|mkv|mp4|mov|wmv|mpg|mpeg|m4v|mpe|mpv)$/i;
 module.exports = config;

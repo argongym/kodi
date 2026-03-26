@@ -66,17 +66,18 @@ function getCategories(){
 
 async function search(options){
 	let categories = getCategories();
+	let safePhrase = (options.phrase ?? '').toString().replace(/'/g, "'\\''");
 	let request = util.format(
-		'curl -s %s/forum/tracker.php -d "f=%s&nm=%s&tm=%s&o=%s&s=%s&pn=%s" -H "Content-Type: application/x-www-form-urlencoded" -H "User-Agent: %s" --cookie %s | iconv -f CP1251 -t UTF-8',
+		"curl -s %s/forum/tracker.php -d 'f=%s&nm=%s&tm=%s&o=%s&s=%s&pn=%s' -H 'Content-Type: application/x-www-form-urlencoded' -H 'User-Agent: %s' --cookie '%s' | iconv -f CP1251 -t UTF-8",
 		config.rutracker_hostname ?? "https://rutracker.org",
 		categories.join(','),                       // categories
-		options.phrase ?? '',                       // search phrase
+		safePhrase,                                 // search phrase
 		options.days ?? (options.phrase ? '' : 7),  // days
 		options.order ?? 10,                        // order by seeds (4 - downloads, 10 - seeds, 11 - leeches)
 		2,                                          // sort desc
 		'',                                         // page number
-		config.rutracker_useragent,
-		config.curl_cookies_jar
+		(config.rutracker_useragent || '').replace(/'/g, "'\\''"),
+		(config.curl_cookies_jar || '').replace(/'/g, "'\\''")
 	);
 	let result = execSync(request).toString();
 

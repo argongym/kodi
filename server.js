@@ -49,9 +49,14 @@ async function processRequest(request, response){
 	response.html = (content) => output(response, content, 'text/html');
 	response.json = (json) => output(response, json, 'application/json');
 	response.stringify = (obj) => output(response, JSON.stringify(obj), 'application/json');
+
+	const isStaticAllowed = parsedURL.pathname.match(/^\/(assets|software)\//) || 
+	                        parsedURL.pathname === '/manifest.json' || 
+	                        parsedURL.pathname.startsWith('/serviceworker');
+
 	if(parsedURL.pathname in routes){
 		routes[parsedURL.pathname](request, response);
-	} else if (fs.existsSync(parsedURL.fspath) && !fs.lstatSync(parsedURL.fspath).isDirectory()) {
+	} else if (isStaticAllowed && !parsedURL.pathname.includes('..') && fs.existsSync(parsedURL.fspath) && !fs.lstatSync(parsedURL.fspath).isDirectory()) {
 		routes.static(request, response);
 	} else {
 		routes.error404(request, response);

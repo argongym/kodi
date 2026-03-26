@@ -25,15 +25,17 @@ async function add(torrentFile, tid, filename){
 					const newName = path.join(dir, `${filename}${movieFiles.length > 1 ? `.${index + 1}` : ''}${ext}`);
 					fs.renameSync(file.path, newName);
 					console.log(`Renamed: ${file.path} -> ${newName}`);
+					file.renamedPath = newName;
 				});
 				torrent.files.forEach(function(file){
-					let dest = config.torrents_dest + file.path.replace(config.torrents_tmp, '');
+					let currentPath = file.renamedPath || file.path;
+					let dest = config.torrents_dest + currentPath.replace(config.torrents_tmp, '');
 					if(config.torrents_tmp != config.torrents_dest){
-						fs.cpSync(file.path, dest, {recursive:true, force:true});
-						fs.rmSync(file.path, {recursive:true, force:true});
+						fs.cpSync(currentPath, dest, {recursive:true, force:true});
+						fs.rmSync(currentPath, {recursive:true, force:true});
 					};
 					if(config.movies_dest != config.torrents_dest){
-						let target = config.movies_dest + file.path.replace(config.torrents_tmp, '');
+						let target = config.movies_dest + currentPath.replace(config.torrents_tmp, '');
 						movies.rename(dest, target);
 					}
 				});
@@ -122,8 +124,7 @@ async function resumeTorrents(){
 }
 
 function isMovieFile(filePath) {
-    const movieExtensions = ['.mp4', '.mkv', '.avi', '.mov', '.wmv']; // Add more extensions as needed
-    return movieExtensions.includes(path.extname(filePath).toLowerCase());
+    return filePath.match(config.video_extensions ?? /\.(avi|mkv|mp4|mov|wmv|mpg|mpeg|m4v|mpe|mpv)$/i);
 }
 
 function formatBytes(bytes, decimals = 2) {

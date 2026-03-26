@@ -15,24 +15,27 @@ async function getAll(){
 			movies = await getAllRpc();
 		}
 	} catch (e) {
-
+		console.error("movies.getAll Error:", e);
 	};
 	return movies;
 }
 function getAllSql(){
 	let cmd = 'sqlite3 '+config.kodi_db+' ".mode json" "SELECT  idMovie AS movieid, c00 AS label, c01 AS plot, c11 AS runtime, c14 AS genres, c16 AS originaltitle, c19 AS trailer, c22 AS file, movie.premiered,  sets.strSet AS strSet,  sets.strOverview AS strSetOverview,  files.strFileName AS strFileName,  path.strPath AS strPath,  files.playCount AS playCount,  files.lastPlayed AS lastPlayed,   files.dateAdded AS dateAdded,   bookmark.timeInSeconds AS resumeTimeInSeconds,   bookmark.totalTimeInSeconds AS totalTimeInSeconds,   bookmark.playerState AS playerState,   rating.rating AS rating,   rating.votes AS votes,   rating.rating_type AS rating_type,   uniqueid.value AS uniqueid_value,   uniqueid.type AS uniqueid_type, (SELECT value FROM uniqueid AS uniqueid2 WHERE uniqueid2.type=\'imdb\' AND media_id=uniqueid.media_id) AS imdbnumber FROM movie  LEFT JOIN sets ON    sets.idSet = movie.idSet  JOIN files ON    files.idFile=movie.idFile  JOIN path ON    path.idPath=files.idPath  LEFT JOIN bookmark ON    bookmark.idFile=movie.idFile AND bookmark.type=1  LEFT JOIN rating ON rating.rating_id=movie.c05  LEFT JOIN uniqueid ON uniqueid.uniqueid_id=movie.c09 ORDER BY movie.idMovie DESC"';
 	let movies = JSON.parse(execSync(cmd));
-	movies.map(function(val){
-		val.trailerid = val.trailer.replace(/.+\=/, '');
-		val.rating = val.rating.toFixed(1);
-		val.votes = Math.round(val.votes / 1000) + 'K';
-		val.rating = (val.rating == 10 || val.votes == '0K') ? 0 : val.rating;
-		val.genres = val.genres.replaceAll(/(комедия|семейный|фантастика|приключения)/g, "<b>$1</b>");
-		val.runtime = toHHMM(val.runtime);
-		val.year = val.premiered.replace(/\-\d+\-\d+/, '');
-		return val;
-	});
+	movies.map(formatMovie);
 	return movies;	
+}
+
+function formatMovie(val){
+	if (val.trailer) val.trailerid = val.trailer.replace(/.+\=/, '');
+	if (val.rating !== undefined) val.rating = val.rating.toFixed(1);
+	if (val.votes !== undefined) val.votes = Math.round(val.votes / 1000) + 'K';
+	if (val.rating == 10 || val.votes == '0K') val.rating = 0;
+	let genres = val.genres || (val.genre ? val.genre.join(' / ') : '');
+	val.genres = genres.replaceAll(/(комедия|семейный|фантастика|приключения)/g, "<b>$1</b>");
+	if (val.runtime) val.runtime = toHHMM(val.runtime);
+	if (val.premiered) val.year = val.premiered.replace(/\-\d+\-\d+/, '');
+	return val;
 }
 
 async function getAllRpc(){
@@ -40,16 +43,7 @@ async function getAllRpc(){
 	let response = await server.httpGet(config.kodi_url+'/jsonrpc?request='+ encodeURIComponent(JSON.stringify(request)));
 	let movies = JSON.parse(response);
 	movies = movies.result.movies;
-	movies.map(function(val){
-		val.trailerid = val.trailer.replace(/.+\=/, '');
-		val.rating = val.rating.toFixed(1);
-		val.votes = Math.round(val.votes / 1000) + 'K';
-		val.rating = (val.rating == 10 || val.votes == '0K') ? 0 : val.rating;
-		val.genres = val.genre.join(' / ').replaceAll(/(комедия|семейный|фантастика|приключения)/g, "<b>$1</b>");
-		val.runtime = toHHMM(val.runtime);
-		val.year = val.premiered.replace(/\-\d+\-\d+/, '');
-		return val;
-	});
+	movies.map(formatMovie);
 	return movies;
 }
 
@@ -60,12 +54,12 @@ async function unknowns(){
 		let kodiFiles = kodiDb.map((item) => {
 			return item.file;
 		});
-		let files = scanDir(config.movies_dest, /\.(avi|mkv|mp4|mov|wmv|mpg|mpeg|m4v|mpe|mpv)/);
+		let files = scanDir(config.movies_dest, config.video_extensions ?? /\.(avi|mkv|mp4|mov|wmv|mpg|mpeg|m4v|mpe|mpv)$/i);
 		files.forEach((item) => {
 			if(!kodiFiles.includes(item)) missing.push(item);
 		});
 	} catch (e){
-		
+		console.error("movies.unknowns Error:", e);
 	}
 	return missing;
 }
@@ -82,7 +76,7 @@ async function cleanGarbage(origin){
     		queue = queue.then(() => cleanGarbage(path));
     	} else if(path.match(/\.(srt|ac3|mcoll)/)){
 			deletes.push(path);
-		} else if(path.match(/\.(avi|mkv|mp4|mov|wmv|mpg|mpeg|m4v|mpe|mpv)/)) {
+		} else if(path.match(config.video_extensions ?? /\.(avi|mkv|mp4|mov|wmv|mpg|mpeg|m4v|mpe|mpv)$/i)) {
 			originHasMovie = true;
 		} else {
 			console.log('Not movie, not garbage: ', path)

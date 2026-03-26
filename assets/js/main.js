@@ -76,23 +76,22 @@ document.addEventListener('alpine:init', () => {
 });
 
 async function GET(url, type = 'json'){
-    return new Promise(function(resolve, reject){
-        let xhr = new XMLHttpRequest;
-        xhr.open("GET", url);
-        xhr.responseType = type;
-        xhr.send();
-        xhr.onload = () => resolve(xhr.response);
-    });
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    if (type === 'json') return response.json();
+    if (type === 'text' || type === 'html') return response.text();
+    if (type === 'blob') return response.blob();
+    return response.arrayBuffer();
 }
 
 function requestFullscreen(){
     if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
-    } else if (docElm.mozRequestFullScreen) {
+    } else if (document.documentElement.mozRequestFullScreen) {
         document.documentElement.mozRequestFullScreen();
-    } else if (docElm.webkitRequestFullScreen) {
+    } else if (document.documentElement.webkitRequestFullScreen) {
         document.documentElement.webkitRequestFullScreen();
-    } else if (docElm.msRequestFullscreen) {
+    } else if (document.documentElement.msRequestFullscreen) {
         document.documentElement.msRequestFullscreen();
     }
 }
