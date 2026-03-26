@@ -22,21 +22,35 @@ async function add(torrentFile, tid, filename){
 				movieFiles.forEach((file, index) => {
 					const ext = path.extname(file.path); // Get file extension
 					const dir = path.dirname(file.path); // Get the directory of the file
-					const newName = path.join(dir, `${filename}${movieFiles.length > 1 ? `.${index + 1}` : ''}${ext}`);
-					fs.renameSync(file.path, newName);
-					console.log(`Renamed: ${file.path} -> ${newName}`);
-					file.renamedPath = newName;
+					const relativeNewName = path.join(dir, `${filename}${movieFiles.length > 1 ? `.${index + 1}` : ''}${ext}`);
+					
+					const absoluteOld = path.join(config.torrents_tmp, file.path);
+					const absoluteNew = path.join(config.torrents_tmp, relativeNewName);
+					
+					try {
+						fs.renameSync(absoluteOld, absoluteNew);
+						console.log(`Renamed: ${absoluteOld} -> ${absoluteNew}`);
+					} catch(e) {
+						console.error("Rename error:", e);
+					}
+					file.renamedPath = relativeNewName;
 				});
 				torrent.files.forEach(function(file){
-					let currentPath = file.renamedPath || file.path;
-					let dest = config.torrents_dest + currentPath.replace(config.torrents_tmp, '');
+					let currentRelativePath = file.renamedPath || file.path;
+					let absoluteSrc = path.join(config.torrents_tmp, currentRelativePath);
+					let absoluteDest = path.join(config.torrents_dest, currentRelativePath);
+
 					if(config.torrents_tmp != config.torrents_dest){
-						fs.cpSync(currentPath, dest, {recursive:true, force:true});
-						fs.rmSync(currentPath, {recursive:true, force:true});
+						try {
+							fs.cpSync(absoluteSrc, absoluteDest, {recursive:true, force:true});
+							fs.rmSync(absoluteSrc, {recursive:true, force:true});
+						} catch (e) {
+							console.error("Copy error:", e);
+						}
 					};
 					if(config.movies_dest != config.torrents_dest){
-						let target = config.movies_dest + currentPath.replace(config.torrents_tmp, '');
-						movies.rename(dest, target);
+						let absoluteTarget = path.join(config.movies_dest, currentRelativePath);
+						movies.rename(absoluteDest, absoluteTarget).catch(e => console.error(e));
 					}
 				});
 				remove(tid, filename);
